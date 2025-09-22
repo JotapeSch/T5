@@ -9,8 +9,8 @@
 //------------- CHAMANDO FUNCOES ------------- 
 void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text);
-void SubPrimOcorrencia(char *text);
+void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, int linha_cont[200]);
+void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text);
 void SubTodasOcorrencia(char *text);
 void CaixaAlta(char *text);
 void CaixaBaixa(char *text);
@@ -51,7 +51,13 @@ void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
         strncpy(linhas[quantidade_linhas], &text[inicio], fim - inicio);
         linhas[quantidade_linhas][fim - inicio] = '\0';
         quantidade_linhas++;
-        inicio = fim + 1;
+        
+        if (text[fim] == ' ' || text[fim] == '\n'){
+            inicio = fim + 1;    
+        } else {
+            inicio = fim;
+        }
+
         fim = inicio + MAX_LINHA_compr;
 
         //verifico se o quantidade de linhas eh maior que o maximo permitido
@@ -66,8 +72,6 @@ void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
 // retorno: nenhum
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     // Implementação pendente - JOTA
-
-
     for(int i = 0; i < MAX_LINHAS; i++){
         if (linhas[i][0] == '\0') // só imprime se não for vazio
             break;
@@ -76,55 +80,82 @@ void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     }
 }
 
+int verificarPalavraValida(char palavra_pra_encontrar[100]){
+    int tamanho_pala = strlen(palavra_pra_encontrar);
+    if (tamanho_pala == 0){
+        printf("Erro: Digite uma palavra válida (não pode estar vazia)!\n");
+        return 0;
+    }
+
+    for ( int i = 0; i < strlen(palavra_pra_encontrar); i++){
+        if (!isalpha(palavra_pra_encontrar[i])){
+            printf("Erro: A palavra deve conter apenas letras (A-Z, a-z)!\n");
+            return 0;
+        }
+    }
+    return 1; //valida
+}
+
+void lerPalavraBusca(char palavra[100]){
+    int valido = 0;
+        do {
+            printf("Digite a palavra para buscar: ");
+            scanf(" %99s", palavra);
+            while (getchar() != '\n'); // limpa buffer
+            valido = verificarPalavraValida(palavra);
+        } while (!valido);
+    }
+
 // objetivo: Procura uma palavra específica no texto e mostra suas ocorrências
 // parametros: matriz de linhas contendo o texto, quantidade de linhas do texto
 // retorno: nenhum
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text){
+void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, int linha_cont[200]){
     // Implementação pendente - JOTA
     char palavra_pra_encontrar[100];
     int encontrou = 0, j = 0;
-    int linha_cont[200], valido = 1;
+    int valido;
 
-    do{
-        printf("Digite a palavra para buscar: ");
-        scanf(" %99s", palavra_pra_encontrar); // O espaço antes de %99s limpa o buffer
-        while (getchar() != '\n'); // Limpa o buffer
-        
-        if (strlen(palavra_pra_encontrar) == 0){
-            printf("Erro: Digite uma palavra válida (não pode estar vazia)!\n");
-            continue;
-        }
-
-
-        for ( int i = 0; i < strlen(palavra_pra_encontrar); i++){
-            if (!isalpha(palavra_pra_encontrar[i])){
-                printf("Erro: A palavra deve conter apenas letras (A-Z, a-z)!\n");
-                valido = 0;
-                break;
-            }
-        }
-
-        if (valido){
-            break;
-        }
-    } while (1);
-
+    lerPalavraBusca(palavra_pra_encontrar);
+    
+    int tamanho_busca = strlen(palavra_pra_encontrar);
+    
     for (int i = 0; i < MAX_LINHAS; i++){
         if (linhas[i][0] == '\0'){
             break;
         }
 
-        if (strstr(text, palavra_pra_encontrar) != NULL){
-            encontrou++;
-            linha_cont[j] = i;
-            j++;
+        char *posicao_atual = linhas[i];
+        while ((posicao_atual = strstr(posicao_atual, palavra_pra_encontrar)) != NULL){
+            int antes_ok;
+            if (posicao_atual == linhas[i] || !isalpha(*(posicao_atual-1))){
+                antes_ok = 1;
+            } else {
+                antes_ok = 0;
+            }
+
+            int depois_ok;
+            if (!isalpha(*(posicao_atual + tamanho_busca)) || *(posicao_atual + tamanho_busca) == '\0'){
+                depois_ok = 1;
+            } else {
+                depois_ok = 0;
+            }
+
+
+            if (antes_ok == 1 && depois_ok == 1){
+                encontrou++;
+                if (j == 0 || linha_cont[j-1] != i){
+                    linha_cont[j] = i;
+                    j++;
+                }
+            }
+            posicao_atual += tamanho_busca;
         }
     }
 
     if (encontrou == 0){
-        printf("Nao foi encontrada nenhuma ocorrencia\n");
+        printf("Nao foi encontrada nenhuma ocorrencia da palavra \"%s\".\n", palavra_pra_encontrar);
     } else if (encontrou != 0){
-        printf("Foram encontradas %d palavra(s) no texto nas seguintes linhas:\n", encontrou);
+        printf("Foram encontradas %d ocorrencia(s) da palavra \"%s\" nas seguintes linhas:\n", encontrou, palavra_pra_encontrar);
         for (int i = 0; i < j; i++){
             int indice_linha = linha_cont[i];
             printf("Linha %d: %s\n", indice_linha + 1, linhas[indice_linha]);
@@ -132,40 +163,163 @@ void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text){
     }
 }
 
+void limparEspacosExtras(char *texto) {
+    char resultado[MAX_TEXTO];
+    int j = 0;
+    int i = 0;
+    
+    while (texto[i] != '\0') {
+        // Se é espaço, só adiciona UM espaço (não múltiplos)
+        if (texto[i] == ' ') {
+            // Adiciona apenas um espaço
+            if (j == 0 || resultado[j-1] != ' ') {
+                resultado[j] = ' ';
+                j++;
+            }
+            // Pula todos os espaços consecutivos
+            while (texto[i] == ' ') {
+                i++;
+            }
+            i--; // Volta um para o próximo caractere
+        } else {
+            // Caractere normal
+            resultado[j] = texto[i];
+            j++;
+            i++;
+        }
+    }
+    
+    resultado[j] = '\0';
+    strcpy(texto, resultado);
+}
+
 // objetivo: Substitui apenas a primeira ocorrência de uma palavra no texto
 // parametros: texto original onde será feita a substituição
 // retorno: nenhum
-void SubPrimOcorrencia(char *text){
-    // Implementação pendente - JOTA m
+void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text){
+    // Implementação pendente - JOTA 
+    char palavra_a_ser_substituida[100], nova_palavra[100];
+    int linha_cont[200];
+    BuscarPlavra(linhas, palavra_a_ser_substituida, linha_cont);
+    int valido = 0;
+    printf("----------------------------------\n");
+    do {
+        printf("Digite a palavra para substituir: ");
+        scanf(" %99s", nova_palavra);
+        while (getchar() != '\n'); // limpa buffer
+        valido = verificarPalavraValida(nova_palavra);
+    } while (!valido);
+
+    int tamanho = strlen(palavra_a_ser_substituida);
+    char *posicao_atual = text;
+    int mudado = 0;
+
+    while ((posicao_atual = strstr(posicao_atual, palavra_a_ser_substituida)) != NULL) {
+        int antes_ok = (posicao_atual == text || !isalpha(*(posicao_atual - 1))); 
+        int depois_ok = (!isalpha(*(posicao_atual + tamanho)) || *(posicao_atual + tamanho) == '\0');
+        //esse antes e depois eh o mesmo que em buscar palavra, porem de forma mais enxuta pra ajudar no entendimento
+
+
+        if (antes_ok && depois_ok) {
+            char resultado[MAX_TEXTO];
+            strncpy(resultado, text, posicao_atual - text);
+            resultado[posicao_atual - text] = '\0';
+            strcat(resultado, nova_palavra);
+            strcat(resultado, posicao_atual + tamanho);
+            strcpy(text, resultado);
+            mudado = 1;
+            break;
+        }
+        posicao_atual += 1;  // Avanca para evitar overlaps, embora raro em palavras
+    }
+
+    if (!mudado) {
+        printf("Nenhuma ocorrencia substituida.\n");
+    } else {
+        limparEspacosExtras(text);
+    }
+
+    printf("----------------------------------\n");
+    formatarTexto(text, linhas);
+    printf("----------------------------------\n");
+    ImprimirFormatado(linhas);
     
 }
 
 // objetivo: Substitui todas as ocorrências de uma palavra no texto
 // parametros: texto original onde serão feitas as substituições
 // retorno: nenhum
-void SubTodasOcorrencia(char *text){
-    // Implementação pendente - RYAN
+void SubTodasOcorrencia(char *text)
+{
+    char antiga[100], nova[100];
+
+    char resultado[MAX_TEXTO];
+
+    char *posicao, *inicio;
+
+    printf("informe a palavra a ser substituidaa: ");
+    scanf("%99s", antiga);
+
+    printf("Digite a nova palavra: ");
+    scanf("%99s", nova);
+
+    resultado[0] = '\0'; // inicia string sem nada
+    inicio = text;
+
+    while ((posicao = strstr(inicio, antiga)) != NULL)
+    {
+        // copia parte antes da palavra encontrada
+        strncat(resultado, inicio, posicao - inicio);
+
+        // adiciona nova palavra
+        strcat(resultado, nova);
+
+        inicio = posicao + strlen(antiga);
+    }
+
+    strcat(resultado, inicio); // copia o resto do texto
+
+    strcpy(text, resultado); // cola de volta para o texto original
 }
 
 // objetivo: Converte todo o texto para letras maiúsculas
 // parametros: texto que será convertido para caixa alta
 // retorno: nenhum
 void CaixaAlta(char *text){
-    // Implementação pendente - RYAN
+    for (int i = 0; text[i] != '\0'; i++)
+    {
+        text[i] = toupper((unsigned char)text[i]); // funcao para converter maiuscula
+    }
 }
 
 // objetivo: Converte todo o texto para letras minúsculas
 // parametros: texto que será convertido para caixa baixa
 // retorno: nenhum
-void CaixaBaixa(char *text){
-    // Implementação pendente - RYAN
+void CaixaBaixa(char *text)
+{
+    for (int i = 0; text[i] != '\0'; i++)
+    {
+        text[i] = tolower((unsigned char)text[i]); // funcao que transforma tudo em minuscula
+    }
+    printf("Texto convertido pra caixa baixa!\n");
 }
 
 // objetivo: Capitaliza a primeira letra de cada frase no texto
 // parametros: texto que terá as primeiras letras das frases capitalizadas
 // retorno: nenhum
 void PrimLetraMaiuFrase(char *text){
-    // Implementação pendente - RYAN
+    int inicioFrase = 1; // para identificar inicio de frase
+
+    for (int i = 0; text[i] != '\0'; i++){
+        if (inicioFrase && isalpha((unsigned char)text[i])) {
+            text[i] = toupper((unsigned char)text[i]);
+            inicioFrase = 0; // ja esta maiuscula a primeira frase
+        }
+
+            if (text[i] == '.' || text[i] == '!' || text[i] == '?'){ // se encontrou o fim da frase, repete o processo de conversao 
+                inicioFrase = 1;
+        }
+    }
 }
 
 // objetivo: Alinha todo o texto à esquerda (padrão)
@@ -202,6 +356,7 @@ void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
 // retorno: nenhum
 void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
     int opcao;
+    int linha_cont[200];
     do{
         printf("\n===== MENU =====\n");
         printf("1 - Imprimir texto formatado\n");
@@ -239,13 +394,13 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
         case 2:
             // objetivo: Busca palavra no texto formatado
             
-            BuscarPlavra(linhas, texto);
+            BuscarPlavra(linhas, NULL, linha_cont);
             break;
 
         case 3:
             // objetivo: Substitui primeira ocorrência e reformata texto
             
-            SubPrimOcorrencia(texto);
+            SubPrimOcorrencia(linhas, texto);
             formatarTexto(texto, linhas);
             break;
         
