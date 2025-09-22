@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_TEXTO 10000
 #define MAX_LINHA_compr 80
@@ -20,28 +21,24 @@ void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
 void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
 
-
-//------------- IMPLEMENTACOES  -------------
+//------------- IMPLEMENTACOES -------------
 // objetivo: Divide o texto em linhas com no máximo 80 caracteres, preservando palavras
-// parametros: ponteiro para quantidade de linhas, texto original, matriz de linhas para armazenar o texto formatado
+// parametros: texto original, matriz de linhas para armazenar o texto formatado
 // retorno: nenhum
-void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
-    // Implementação pendente - JOTA
+void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
     int quantidade_linhas = 0;
     int inicio = 0, fim = inicio + MAX_LINHA_compr;
     int tamanho_texto = strlen(text);
 
-    while (inicio < tamanho_texto){
-        if (fim > tamanho_texto){
-            fim = tamanho_texto; //Intuitivo, caso fim seja maior que o texto, eh so reduzir o final para o tamanho certo
+    while (inicio < tamanho_texto) {
+        if (fim > tamanho_texto) {
+            fim = tamanho_texto;
         }
 
-        //caso a palavra seja cortado no meio, a gente resolve isso, voltando no primeiro espaco ou \n encontrado
-        while(fim > inicio && fim < tamanho_texto && text[fim] != ' ' && text[fim] != '\n'){
+        while (fim > inicio && fim < tamanho_texto && text[fim] != ' ' && text[fim] != '\n') {
             fim--;
         }
 
-        //caso a palavra seja maior que o limite de comprimento da linha, que eh 80, forcamos ela 
         if (fim == inicio) {
             fim = inicio + MAX_LINHA_compr;
             if (fim > tamanho_texto) 
@@ -52,7 +49,7 @@ void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
         linhas[quantidade_linhas][fim - inicio] = '\0';
         quantidade_linhas++;
         
-        if (text[fim] == ' ' || text[fim] == '\n'){
+        if (text[fim] == ' ' || text[fim] == '\n') {
             inicio = fim + 1;    
         } else {
             inicio = fim;
@@ -60,90 +57,77 @@ void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
 
         fim = inicio + MAX_LINHA_compr;
 
-        //verifico se o quantidade de linhas eh maior que o maximo permitido
-        if (quantidade_linhas >= MAX_LINHAS) 
+        if (quantidade_linhas >= MAX_LINHAS) {
+            printf("Aviso: Limite de %d linhas atingido.\n", MAX_LINHAS);
             break;
-
+        }
     }
 }
 
 // objetivo: Imprime o texto já formatado linha por linha
-// parametros: quantidade de linhas, matriz de linhas contendo o texto formatado
+// parametros: matriz de linhas contendo o texto formatado
 // retorno: nenhum
-void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
-    // Implementação pendente - JOTA
-    for(int i = 0; i < MAX_LINHAS; i++){
-        if (linhas[i][0] == '\0') // só imprime se não for vazio
+void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0')
             break;
-
         printf("%s\n", linhas[i]);
     }
 }
 
-int verificarPalavraValida(char palavra_pra_encontrar[100]){
+int verificarPalavraValida(char palavra_pra_encontrar[100]) {
     int tamanho_pala = strlen(palavra_pra_encontrar);
-    if (tamanho_pala == 0){
+    if (tamanho_pala == 0) {
         printf("Erro: Digite uma palavra válida (não pode estar vazia)!\n");
         return 0;
     }
 
-    for ( int i = 0; i < strlen(palavra_pra_encontrar); i++){
-        if (!isalpha(palavra_pra_encontrar[i])){
+    for (int i = 0; i < tamanho_pala; i++) {
+        if (!isalpha(palavra_pra_encontrar[i])) {
             printf("Erro: A palavra deve conter apenas letras (A-Z, a-z)!\n");
             return 0;
         }
     }
-    return 1; //valida
+    return 1;
 }
 
-void lerPalavraBusca(char palavra[100]){
+void lerPalavraBusca(char palavra[100]) {
     int valido = 0;
-        do {
-            printf("Digite a palavra para buscar: ");
-            scanf(" %99s", palavra);
-            while (getchar() != '\n'); // limpa buffer
-            valido = verificarPalavraValida(palavra);
-        } while (!valido);
-    }
+    do {
+        printf("Digite a palavra para buscar: ");
+        scanf(" %99s", palavra);
+        while (getchar() != '\n');
+        valido = verificarPalavraValida(palavra);
+    } while (!valido);
+}
 
 // objetivo: Procura uma palavra específica no texto e mostra suas ocorrências
-// parametros: matriz de linhas contendo o texto, quantidade de linhas do texto
+// parametros: matriz de linhas contendo o texto, palavra a buscar, array para índices de linhas
 // retorno: nenhum
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, int linha_cont[200]){
-    // Implementação pendente - JOTA
+void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, int linha_cont[200]) {
     char palavra_pra_encontrar[100];
     int encontrou = 0, j = 0;
-    int valido;
+
+    // Inicializa linha_cont
+    for (int k = 0; k < 200; k++) linha_cont[k] = -1;
 
     lerPalavraBusca(palavra_pra_encontrar);
     
     int tamanho_busca = strlen(palavra_pra_encontrar);
     
-    for (int i = 0; i < MAX_LINHAS; i++){
-        if (linhas[i][0] == '\0'){
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0') {
             break;
         }
 
         char *posicao_atual = linhas[i];
-        while ((posicao_atual = strstr(posicao_atual, palavra_pra_encontrar)) != NULL){
-            int antes_ok;
-            if (posicao_atual == linhas[i] || !isalpha(*(posicao_atual-1))){
-                antes_ok = 1;
-            } else {
-                antes_ok = 0;
-            }
+        while ((posicao_atual = strstr(posicao_atual, palavra_pra_encontrar)) != NULL) {
+            int antes_ok = (posicao_atual == linhas[i] || !isalpha(*(posicao_atual-1)));
+            int depois_ok = (!isalpha(*(posicao_atual + tamanho_busca)) || *(posicao_atual + tamanho_busca) == '\0');
 
-            int depois_ok;
-            if (!isalpha(*(posicao_atual + tamanho_busca)) || *(posicao_atual + tamanho_busca) == '\0'){
-                depois_ok = 1;
-            } else {
-                depois_ok = 0;
-            }
-
-
-            if (antes_ok == 1 && depois_ok == 1){
+            if (antes_ok && depois_ok) {
                 encontrou++;
-                if (j == 0 || linha_cont[j-1] != i){
+                if (j == 0 || linha_cont[j-1] != i) {
                     linha_cont[j] = i;
                     j++;
                 }
@@ -152,11 +136,11 @@ void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, i
         }
     }
 
-    if (encontrou == 0){
+    if (encontrou == 0) {
         printf("Nao foi encontrada nenhuma ocorrencia da palavra \"%s\".\n", palavra_pra_encontrar);
-    } else if (encontrou != 0){
+    } else {
         printf("Foram encontradas %d ocorrencia(s) da palavra \"%s\" nas seguintes linhas:\n", encontrou, palavra_pra_encontrar);
-        for (int i = 0; i < j; i++){
+        for (int i = 0; i < j; i++) {
             int indice_linha = linha_cont[i];
             printf("Linha %d: %s\n", indice_linha + 1, linhas[indice_linha]);
         }
@@ -165,24 +149,19 @@ void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *palavra, i
 
 void limparEspacosExtras(char *texto) {
     char resultado[MAX_TEXTO];
-    int j = 0;
-    int i = 0;
+    int j = 0, i = 0;
     
     while (texto[i] != '\0') {
-        // Se é espaço, só adiciona UM espaço (não múltiplos)
         if (texto[i] == ' ') {
-            // Adiciona apenas um espaço
             if (j == 0 || resultado[j-1] != ' ') {
                 resultado[j] = ' ';
                 j++;
             }
-            // Pula todos os espaços consecutivos
             while (texto[i] == ' ') {
                 i++;
             }
-            i--; // Volta um para o próximo caractere
+            i--;
         } else {
-            // Caractere normal
             resultado[j] = texto[i];
             j++;
             i++;
@@ -194,19 +173,28 @@ void limparEspacosExtras(char *texto) {
 }
 
 // objetivo: Substitui apenas a primeira ocorrência de uma palavra no texto
-// parametros: texto original onde será feita a substituição
+// parametros: matriz de linhas, texto original
 // retorno: nenhum
-void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text){
-    // Implementação pendente - JOTA 
+void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text) {
     char palavra_a_ser_substituida[100], nova_palavra[100];
     int linha_cont[200];
-    BuscarPlavra(linhas, palavra_a_ser_substituida, linha_cont);
     int valido = 0;
+    
+    printf("----------------------------------\n");
+    do {
+        printf("Digite a palavra a ser substituida: ");
+        scanf(" %99s", palavra_a_ser_substituida);
+        while (getchar() != '\n');
+        valido = verificarPalavraValida(palavra_a_ser_substituida);
+    } while (!valido);
+    
+    BuscarPlavra(linhas, palavra_a_ser_substituida, linha_cont);
+    
     printf("----------------------------------\n");
     do {
         printf("Digite a palavra para substituir: ");
         scanf(" %99s", nova_palavra);
-        while (getchar() != '\n'); // limpa buffer
+        while (getchar() != '\n');
         valido = verificarPalavraValida(nova_palavra);
     } while (!valido);
 
@@ -214,11 +202,15 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text)
     char *posicao_atual = text;
     int mudado = 0;
 
+    // Verifica se a substituição excede o limite
+    if (strlen(text) - tamanho + strlen(nova_palavra) >= MAX_TEXTO) {
+        printf("Erro: Substituição excede o limite de %d caracteres.\n", MAX_TEXTO);
+        return;
+    }
+
     while ((posicao_atual = strstr(posicao_atual, palavra_a_ser_substituida)) != NULL) {
         int antes_ok = (posicao_atual == text || !isalpha(*(posicao_atual - 1))); 
         int depois_ok = (!isalpha(*(posicao_atual + tamanho)) || *(posicao_atual + tamanho) == '\0');
-        //esse antes e depois eh o mesmo que em buscar palavra, porem de forma mais enxuta pra ajudar no entendimento
-
 
         if (antes_ok && depois_ok) {
             char resultado[MAX_TEXTO];
@@ -230,7 +222,7 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text)
             mudado = 1;
             break;
         }
-        posicao_atual += 1;  // Avanca para evitar overlaps, embora raro em palavras
+        posicao_atual += 1;
     }
 
     if (!mudado) {
@@ -243,121 +235,281 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text)
     formatarTexto(text, linhas);
     printf("----------------------------------\n");
     ImprimirFormatado(linhas);
-    
 }
 
 // objetivo: Substitui todas as ocorrências de uma palavra no texto
-// parametros: texto original onde serão feitas as substituições
+// parametros: texto original
 // retorno: nenhum
-void SubTodasOcorrencia(char *text)
-{
+void SubTodasOcorrencia(char *text) {
     char antiga[100], nova[100];
-
     char resultado[MAX_TEXTO];
-
     char *posicao, *inicio;
+    int valido;
 
-    printf("informe a palavra a ser substituidaa: ");
-    scanf("%99s", antiga);
+    printf("----------------------------------\n");
+    do {
+        printf("Informe a palavra a ser substituida: ");
+        scanf("%99s", antiga);
+        while (getchar() != '\n');
+        valido = verificarPalavraValida(antiga);
+    } while (!valido);
 
-    printf("Digite a nova palavra: ");
-    scanf("%99s", nova);
+    do {
+        printf("Digite a nova palavra: ");
+        scanf("%99s", nova);
+        while (getchar() != '\n');
+        valido = verificarPalavraValida(nova);
+    } while (!valido);
 
-    resultado[0] = '\0'; // inicia string sem nada
+    resultado[0] = '\0';
     inicio = text;
 
-    while ((posicao = strstr(inicio, antiga)) != NULL)
-    {
-        // copia parte antes da palavra encontrada
+    while ((posicao = strstr(inicio, antiga)) != NULL) {
+        if (strlen(text) - strlen(antiga) + strlen(nova) >= MAX_TEXTO) {
+            printf("Erro: Substituição excede o limite de %d caracteres.\n", MAX_TEXTO);
+            return;
+        }
         strncat(resultado, inicio, posicao - inicio);
-
-        // adiciona nova palavra
         strcat(resultado, nova);
-
         inicio = posicao + strlen(antiga);
     }
 
-    strcat(resultado, inicio); // copia o resto do texto
-
-    strcpy(text, resultado); // cola de volta para o texto original
+    strcat(resultado, inicio);
+    strcpy(text, resultado);
+    limparEspacosExtras(text);
 }
 
 // objetivo: Converte todo o texto para letras maiúsculas
-// parametros: texto que será convertido para caixa alta
+// parametros: texto que será convertido
 // retorno: nenhum
-void CaixaAlta(char *text){
-    for (int i = 0; text[i] != '\0'; i++)
-    {
-        text[i] = toupper((unsigned char)text[i]); // funcao para converter maiuscula
+void CaixaAlta(char *text) {
+    for (int i = 0; text[i] != '\0'; i++) {
+        text[i] = toupper((unsigned char)text[i]);
     }
 }
 
 // objetivo: Converte todo o texto para letras minúsculas
-// parametros: texto que será convertido para caixa baixa
+// parametros: texto que será convertido
 // retorno: nenhum
-void CaixaBaixa(char *text)
-{
-    for (int i = 0; text[i] != '\0'; i++)
-    {
-        text[i] = tolower((unsigned char)text[i]); // funcao que transforma tudo em minuscula
+void CaixaBaixa(char *text) {
+    for (int i = 0; text[i] != '\0'; i++) {
+        text[i] = tolower((unsigned char)text[i]);
     }
     printf("Texto convertido pra caixa baixa!\n");
 }
 
 // objetivo: Capitaliza a primeira letra de cada frase no texto
-// parametros: texto que terá as primeiras letras das frases capitalizadas
+// parametros: texto que terá as primeiras letras capitalizadas
 // retorno: nenhum
-void PrimLetraMaiuFrase(char *text){
-    int inicioFrase = 1; // para identificar inicio de frase
-
-    for (int i = 0; text[i] != '\0'; i++){
+void PrimLetraMaiuFrase(char *text) {
+    int inicioFrase = 1;
+    for (int i = 0; text[i] != '\0'; i++) {
         if (inicioFrase && isalpha((unsigned char)text[i])) {
             text[i] = toupper((unsigned char)text[i]);
-            inicioFrase = 0; // ja esta maiuscula a primeira frase
+            inicioFrase = 0;
         }
-
-            if (text[i] == '.' || text[i] == '!' || text[i] == '?'){ // se encontrou o fim da frase, repete o processo de conversao 
-                inicioFrase = 1;
+        if (text[i] == '.' || text[i] == '!' || text[i] == '?') {
+            inicioFrase = 1;
         }
     }
 }
 
 // objetivo: Alinha todo o texto à esquerda (padrão)
-// parametros: quantidade de linhas, matriz de linhas contendo o texto
+// parametros: matriz de linhas contendo o texto
 // retorno: nenhum
-void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
-    // Implementação pendente - VINI
+void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0') break;
+
+        // Remove espaços no final
+        int len = strlen(linhas[i]);
+        while (len > 0 && linhas[i][len - 1] == ' ') {
+            linhas[i][len - 1] = '\0';
+            len--;
+        }
+
+        // Verifica se a linha tem apenas espaços
+        int is_empty = 1;
+        for (int j = 0; j < len; j++) {
+            if (linhas[i][j] != ' ') {
+                is_empty = 0;
+                break;
+            }
+        }
+        if (is_empty) {
+            linhas[i][0] = '\0';
+            continue;
+        }
+
+        // Remove espaços no início
+        int start = 0;
+        while (linhas[i][start] == ' ') {
+            start++;
+        }
+        if (start > 0) {
+            memmove(linhas[i], &linhas[i][start], len - start + 1);
+        }
+    }
 }
 
 // objetivo: Alinha todo o texto à direita
-// parametros: quantidade de linhas, matriz de linhas contendo o texto
+// parametros: matriz de linhas contendo o texto
 // retorno: nenhum
-void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
-    // Implementação pendente - VINI
+void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0') break;
+
+        // Remove espaços no início e no final
+        int len = strlen(linhas[i]);
+        while (len > 0 && linhas[i][len - 1] == ' ') {
+            linhas[i][len - 1] = '\0';
+            len--;
+        }
+
+        // Verifica se a linha tem apenas espaços
+        int is_empty = 1;
+        for (int j = 0; j < len; j++) {
+            if (linhas[i][j] != ' ') {
+                is_empty = 0;
+                break;
+            }
+        }
+        if (is_empty) {
+            linhas[i][0] = '\0';
+            continue;
+        }
+
+        int start = 0;
+        while (linhas[i][start] == ' ') {
+            start++;
+        }
+        if (start > 0) {
+            memmove(linhas[i], &linhas[i][start], len - start + 1);
+            len -= start;
+        }
+
+        // Adiciona espaços à esquerda
+        if (len < MAX_LINHA_compr) {
+            char temp[MAX_LINHA_compr + 1] = {0};
+            int spaces = MAX_LINHA_compr - len;
+            memset(temp, ' ', spaces);
+            strcpy(temp + spaces, linhas[i]);
+            strcpy(linhas[i], temp);
+        }
+    }
 }
 
 // objetivo: Justifica o texto (distribui espaços uniformemente entre palavras)
-// parametros: matriz de linhas contendo o texto, quantidade de linhas
+// parametros: matriz de linhas contendo o texto
 // retorno: nenhum
-void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
-    // Implementação pendente - VINI
+void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0') break;
+
+        // Conta palavras e remove espaços extras
+        char temp[MAX_LINHA_compr + 1];
+        char *words[MAX_LINHA_compr];
+        int word_count = 0;
+        strcpy(temp, linhas[i]);
+        char *token = strtok(temp, " ");
+        while (token != NULL && word_count < MAX_LINHA_compr) {
+            words[word_count++] = token;
+            token = strtok(NULL, " ");
+        }
+
+        // Verifica se a linha tem apenas espaços ou é vazia
+        if (word_count == 0) {
+            linhas[i][0] = '\0';
+            continue;
+        }
+
+        // Calcula comprimento total das palavras
+        int total_len = 0;
+        for (int j = 0; j < word_count; j++) {
+            total_len += strlen(words[j]);
+        }
+
+        // Se for uma palavra ou a última linha, alinha à esquerda
+        if (word_count <= 1 || (i == MAX_LINHAS - 1 || linhas[i + 1][0] == '\0')) {
+            strcpy(linhas[i], words[0] ? words[0] : "");
+            continue;
+        }
+
+        // Calcula espaços necessários
+        int spaces_needed = MAX_LINHA_compr - total_len;
+        int gaps = word_count - 1;
+        int spaces_per_gap = gaps > 0 ? spaces_needed / gaps : 0;
+        int extra_spaces = gaps > 0 ? spaces_needed % gaps : 0;
+
+        // Constrói linha justificada
+        char result[MAX_LINHA_compr + 1] = {0};
+        for (int j = 0; j < word_count; j++) {
+            strcat(result, words[j]);
+            if (j < word_count - 1) {
+                for (int k = 0; k < spaces_per_gap + (j < extra_spaces ? 1 : 0); k++) {
+                    strcat(result, " ");
+                }
+            }
+        }
+        strcpy(linhas[i], result);
+    }
 }
 
 // objetivo: Centraliza todas as linhas do texto
-// parametros: matriz de linhas contendo o texto, quantidade de linhas
+// parametros: matriz de linhas contendo o texto
 // retorno: nenhum
-void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
-    // Implementação pendente - VINI
-}
-//-----------------------------------------------------
+void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
+    for (int i = 0; i < MAX_LINHAS; i++) {
+        if (linhas[i][0] == '\0') break;
 
-// objetivo: Exibe menu interativo e chama funções de formatação de texto conforme escolha do usuário
-// parametros: texto original, matriz de linhas formatadas, ponteiro para quantidade de linhas
+        // Remove espaços no início e no final
+        int len = strlen(linhas[i]);
+        while (len > 0 && linhas[i][len - 1] == ' ') {
+            linhas[i][len - 1] = '\0';
+            len--;
+        }
+
+        // Verifica se a linha tem apenas espaços
+        int is_empty = 1;
+        for (int j = 0; j < len; j++) {
+            if (linhas[i][j] != ' ') {
+                is_empty = 0;
+                break;
+            }
+        }
+        if (is_empty) {
+            linhas[i][0] = '\0';
+            continue;
+        }
+
+        int start = 0;
+        while (linhas[i][start] == ' ') {
+            start++;
+        }
+        if (start > 0) {
+            memmove(linhas[i], &linhas[i][start], len - start + 1);
+            len -= start;
+        }
+
+        // Adiciona espaços para centralizar
+        if (len < MAX_LINHA_compr) {
+            char temp[MAX_LINHA_compr + 1] = {0};
+            int total_spaces = MAX_LINHA_compr - len;
+            int left_spaces = total_spaces / 2;
+            memset(temp, ' ', left_spaces);
+            strcpy(temp + left_spaces, linhas[i]);
+            strcpy(linhas[i], temp);
+        }
+    }
+}
+
+// objetivo: Exibe menu interativo e chama funções de formatação
+// parametros: texto original, matriz de linhas formatadas
 // retorno: nenhum
-void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
+void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
     int opcao;
     int linha_cont[200];
-    do{
+    do {
         printf("\n===== MENU =====\n");
         printf("1 - Imprimir texto formatado\n");
         printf("2 - Buscar palavra\n");
@@ -373,109 +525,69 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
         printf("0 - Sair\n");
         printf("Escolha: ");
         
-        // Validação de entrada
         if (scanf("%d", &opcao) != 1) {
             printf("Entrada invalida. Tente novamente.\n");
-            while (getchar() != '\n'); // Limpa o buffer
+            while (getchar() != '\n');
             continue;
         }
         
-        // Limpar buffer após scanf
         while (getchar() != '\n');
         
-        switch (opcao)
-        {
+        switch (opcao) {
         case 1:
-            // objetivo: Imprime o texto formatado
-           
             ImprimirFormatado(linhas);
             break;
-
         case 2:
-            // objetivo: Busca palavra no texto formatado
-            
             BuscarPlavra(linhas, NULL, linha_cont);
             break;
-
         case 3:
-            // objetivo: Substitui primeira ocorrência e reformata texto
-            
             SubPrimOcorrencia(linhas, texto);
             formatarTexto(texto, linhas);
             break;
-        
         case 4:
-            // objetivo: Substitui todas ocorrências e reformata texto
-            
             SubTodasOcorrencia(texto);
             formatarTexto(texto, linhas);
             break;
-
         case 5:
-            // objetivo: Converte para maiúsculas e reformata texto
-            
             CaixaAlta(texto);
             formatarTexto(texto, linhas);
             break;
-
         case 6:
-            // objetivo: Converte para minúsculas e reformata texto
-            
             CaixaBaixa(texto);
             formatarTexto(texto, linhas);
             break;
-
         case 7:
-            // objetivo: Capitaliza frases e reformata texto
-            
             PrimLetraMaiuFrase(texto);
             formatarTexto(texto, linhas);
             break;
-        
         case 8:
-            // objetivo: Alinha texto à esquerda
-            
             AlinharEsquerda(linhas);
+            ImprimirFormatado(linhas);
             break;
-
         case 9:
-            // objetivo: Alinha texto à direita
-            
             AlinharDireita(linhas);
+            ImprimirFormatado(linhas);
             break;
-
         case 10:
-            // objetivo: Justifica o texto
-            
             Justificar(linhas);
+            ImprimirFormatado(linhas);
             break;
-
         case 11:
-            // objetivo: Centraliza o texto
-            
             Centralizar(linhas);
-            break;   
-            
+            ImprimirFormatado(linhas);
+            break;
         case 0:
-            // objetivo: Sai do programa
             printf("Saindo do programa...\n");
             break;
-            
         default:
-            //Trata opção inválida
-            
             printf("Opção inválida! Tente novamente.\n");
             break;
         }
     } while (opcao != 0);
 }
 
-int main()
-{
-
-    
-    // Declaração do texto original sobre Bill Gates
-    char text[MAX_TEXTO]="William Henry Gates III KBE GCIH (Seattle, 28 de outubro de 1955) mais conhecido como Bill Gates,\
+int main() {
+    char text[MAX_TEXTO] = "William Henry Gates III KBE GCIH (Seattle, 28 de outubro de 1955) mais conhecido como Bill Gates,\
  e um magnata, empresario, diretor executivo, investidor, filantropo e autor americano, que ficou conhecido por \
  fundar junto com Paul Allen a Microsoft a maior e mais conhecida empresa de software do mundo em termos de valor \
  de mercado. Gates ocupa atualmente o cargo de presidente nao-executivo da Microsoft alem de ser classificado \
@@ -494,7 +606,7 @@ int main()
  a Traf-o-Data, porem os clientes desistiram do negocio quando descobriram a idade dos donos. Enquanto \
  estudavam em Harvard, os jovens desenvolveram um interpretador da linguagem BASIC para um dos primeiros \
  computadores pessoais a serem lancado nos Estados Unidos - o Altair 8800. Apos um modesto sucesso na \
- comercializa��o deste produto, Gates e Allen fundaram a Microsoft, uma das primeiras empresas no mundo \
+ comercialização deste produto, Gates e Allen fundaram a Microsoft, uma das primeiras empresas no mundo \
  focadas exclusivamente no mercado de programas para computadores pessoais ou PCs. Gates adquiriu ao \
  longo dos anos uma fama de visionario (apostou no mercado de software na epoca em que o hardware era \
  considerado muito mais valioso) e de negociador agressivo, chegando muitas vezes a ser acusado por \
@@ -506,16 +618,10 @@ int main()
  o programa e vendeu-o por US$ 8 milhoes, mantendo a licenca do produto. Este viria a ser o MS-DOS. \
  Fonte: https://pt.wikipedia.org/wiki/Bill_Gates";
 
-    // Variáveis para controle do texto formatado
+    char linhas[MAX_LINHAS][MAX_LINHA_compr+1];
     
-    char linhas[MAX_LINHAS][MAX_LINHA_compr+1];  // matriz para armazenar linhas formatadas
-    
-    // FORMATAR PELA PRIMEIRA VEZ
     formatarTexto(text, linhas);
-    
-    // CHAMA MENU
     Menu(text, linhas);
 
-
-    return 0;  // Sucesso na execução
+    return 0;
 }
