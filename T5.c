@@ -7,47 +7,137 @@
 #define MAX_LINHAS 500
 
 //------------- CHAMANDO FUNCOES ------------- 
-void formatarTexto(int *qtd_linhas, char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
-void ImprimirFormatado(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas);
+void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
+void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
+void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text);
 void SubPrimOcorrencia(char *text);
 void SubTodasOcorrencia(char *text);
 void CaixaAlta(char *text);
 void CaixaBaixa(char *text);
 void PrimLetraMaiuFrase(char *text);
-void AlinharEsquerda(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
-void AlinharDireita(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
-void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas);
-void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas);
+void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
+void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
+void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
+void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
 
 
 //------------- IMPLEMENTACOES  -------------
 // objetivo: Divide o texto em linhas com no máximo 80 caracteres, preservando palavras
 // parametros: ponteiro para quantidade de linhas, texto original, matriz de linhas para armazenar o texto formatado
 // retorno: nenhum
-void formatarTexto(int *qtd_linhas, char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
+void formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     // Implementação pendente - JOTA
+    int quantidade_linhas = 0;
+    int inicio = 0, fim = inicio + MAX_LINHA_compr;
+    int tamanho_texto = strlen(text);
+
+    while (inicio < tamanho_texto){
+        if (fim > tamanho_texto){
+            fim = tamanho_texto; //Intuitivo, caso fim seja maior que o texto, eh so reduzir o final para o tamanho certo
+        }
+
+        //caso a palavra seja cortado no meio, a gente resolve isso, voltando no primeiro espaco ou \n encontrado
+        while(fim > inicio && fim < tamanho_texto && text[fim] != ' ' && text[fim] != '\n'){
+            fim--;
+        }
+
+        //caso a palavra seja maior que o limite de comprimento da linha, que eh 80, forcamos ela 
+        if (fim == inicio) {
+            fim = inicio + MAX_LINHA_compr;
+            if (fim > tamanho_texto) 
+                fim = tamanho_texto;
+        }
+
+        strncpy(linhas[quantidade_linhas], &text[inicio], fim - inicio);
+        linhas[quantidade_linhas][fim - inicio] = '\0';
+        quantidade_linhas++;
+        inicio = fim + 1;
+        fim = inicio + MAX_LINHA_compr;
+
+        //verifico se o quantidade de linhas eh maior que o maximo permitido
+        if (quantidade_linhas >= MAX_LINHAS) 
+            break;
+
+    }
 }
 
 // objetivo: Imprime o texto já formatado linha por linha
 // parametros: quantidade de linhas, matriz de linhas contendo o texto formatado
 // retorno: nenhum
-void ImprimirFormatado(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
+void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     // Implementação pendente - JOTA
+
+
+    for(int i = 0; i < MAX_LINHAS; i++){
+        if (linhas[i][0] == '\0') // só imprime se não for vazio
+            break;
+
+        printf("%s\n", linhas[i]);
+    }
 }
 
 // objetivo: Procura uma palavra específica no texto e mostra suas ocorrências
 // parametros: matriz de linhas contendo o texto, quantidade de linhas do texto
 // retorno: nenhum
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas){
+void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text){
     // Implementação pendente - JOTA
+    char palavra_pra_encontrar[100];
+    int encontrou = 0, j = 0;
+    int linha_cont[200], valido = 1;
+
+    do{
+        printf("Digite a palavra para buscar: ");
+        scanf(" %99s", palavra_pra_encontrar); // O espaço antes de %99s limpa o buffer
+        while (getchar() != '\n'); // Limpa o buffer
+        
+        if (strlen(palavra_pra_encontrar) == 0){
+            printf("Erro: Digite uma palavra válida (não pode estar vazia)!\n");
+            continue;
+        }
+
+
+        for ( int i = 0; i < strlen(palavra_pra_encontrar); i++){
+            if (!isalpha(palavra_pra_encontrar[i])){
+                printf("Erro: A palavra deve conter apenas letras (A-Z, a-z)!\n");
+                valido = 0;
+                break;
+            }
+        }
+
+        if (valido){
+            break;
+        }
+    } while (1);
+
+    for (int i = 0; i < MAX_LINHAS; i++){
+        if (linhas[i][0] == '\0'){
+            break;
+        }
+
+        if (strstr(text, palavra_pra_encontrar) != NULL){
+            encontrou++;
+            linha_cont[j] = i;
+            j++;
+        }
+    }
+
+    if (encontrou == 0){
+        printf("Nao foi encontrada nenhuma ocorrencia\n");
+    } else if (encontrou != 0){
+        printf("Foram encontradas %d palavra(s) no texto nas seguintes linhas:\n", encontrou);
+        for (int i = 0; i < j; i++){
+            int indice_linha = linha_cont[i];
+            printf("Linha %d: %s\n", indice_linha + 1, linhas[indice_linha]);
+        }
+    }
 }
 
 // objetivo: Substitui apenas a primeira ocorrência de uma palavra no texto
 // parametros: texto original onde será feita a substituição
 // retorno: nenhum
 void SubPrimOcorrencia(char *text){
-    // Implementação pendente - JOTA
+    // Implementação pendente - JOTA m
+    
 }
 
 // objetivo: Substitui todas as ocorrências de uma palavra no texto
@@ -81,28 +171,28 @@ void PrimLetraMaiuFrase(char *text){
 // objetivo: Alinha todo o texto à esquerda (padrão)
 // parametros: quantidade de linhas, matriz de linhas contendo o texto
 // retorno: nenhum
-void AlinharEsquerda(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
+void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     // Implementação pendente - VINI
 }
 
 // objetivo: Alinha todo o texto à direita
 // parametros: quantidade de linhas, matriz de linhas contendo o texto
 // retorno: nenhum
-void AlinharDireita(int qtd_linhas, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
+void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]){
     // Implementação pendente - VINI
 }
 
 // objetivo: Justifica o texto (distribui espaços uniformemente entre palavras)
 // parametros: matriz de linhas contendo o texto, quantidade de linhas
 // retorno: nenhum
-void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas){
+void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
     // Implementação pendente - VINI
 }
 
 // objetivo: Centraliza todas as linhas do texto
 // parametros: matriz de linhas contendo o texto, quantidade de linhas
 // retorno: nenhum
-void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas){
+void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
     // Implementação pendente - VINI
 }
 //-----------------------------------------------------
@@ -110,7 +200,7 @@ void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int qtd_linhas){
 // objetivo: Exibe menu interativo e chama funções de formatação de texto conforme escolha do usuário
 // parametros: texto original, matriz de linhas formatadas, ponteiro para quantidade de linhas
 // retorno: nenhum
-void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *qtd_linhas){
+void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]){
     int opcao;
     do{
         printf("\n===== MENU =====\n");
@@ -143,72 +233,72 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *qtd_li
         case 1:
             // objetivo: Imprime o texto formatado
            
-            ImprimirFormatado(*qtd_linhas, linhas);
+            ImprimirFormatado(linhas);
             break;
 
         case 2:
             // objetivo: Busca palavra no texto formatado
             
-            BuscarPlavra(linhas, *qtd_linhas);
+            BuscarPlavra(linhas, texto);
             break;
 
         case 3:
             // objetivo: Substitui primeira ocorrência e reformata texto
             
             SubPrimOcorrencia(texto);
-            formatarTexto(qtd_linhas, texto, linhas);
+            formatarTexto(texto, linhas);
             break;
         
         case 4:
             // objetivo: Substitui todas ocorrências e reformata texto
             
             SubTodasOcorrencia(texto);
-            formatarTexto(qtd_linhas, texto, linhas);
+            formatarTexto(texto, linhas);
             break;
 
         case 5:
             // objetivo: Converte para maiúsculas e reformata texto
             
             CaixaAlta(texto);
-            formatarTexto(qtd_linhas, texto, linhas);
+            formatarTexto(texto, linhas);
             break;
 
         case 6:
             // objetivo: Converte para minúsculas e reformata texto
             
             CaixaBaixa(texto);
-            formatarTexto(qtd_linhas, texto, linhas);
+            formatarTexto(texto, linhas);
             break;
 
         case 7:
             // objetivo: Capitaliza frases e reformata texto
             
             PrimLetraMaiuFrase(texto);
-            formatarTexto(qtd_linhas, texto, linhas);
+            formatarTexto(texto, linhas);
             break;
         
         case 8:
             // objetivo: Alinha texto à esquerda
             
-            AlinharEsquerda(*qtd_linhas, linhas);
+            AlinharEsquerda(linhas);
             break;
 
         case 9:
             // objetivo: Alinha texto à direita
             
-            AlinharDireita(*qtd_linhas, linhas);
+            AlinharDireita(linhas);
             break;
 
         case 10:
             // objetivo: Justifica o texto
             
-            Justificar(linhas, *qtd_linhas);
+            Justificar(linhas);
             break;
 
         case 11:
             // objetivo: Centraliza o texto
             
-            Centralizar(linhas, *qtd_linhas);
+            Centralizar(linhas);
             break;   
             
         case 0:
@@ -262,16 +352,15 @@ int main()
  Fonte: https://pt.wikipedia.org/wiki/Bill_Gates";
 
     // Variáveis para controle do texto formatado
-    int qtd_linhas = 0;  // quantidade de linhas do texto formatado
+    
     char linhas[MAX_LINHAS][MAX_LINHA_compr+1];  // matriz para armazenar linhas formatadas
     
     // FORMATAR PELA PRIMEIRA VEZ
-    formatarTexto(&qtd_linhas, text, linhas);
+    formatarTexto(text, linhas);
     
     // CHAMA MENU
-    Menu(text, linhas, &qtd_linhas);
+    Menu(text, linhas);
 
-    // Imprime texto original final (para debug/verificação)
-    printf("\n\nTexto original final:\n%s", text);
+
     return 0;  // Sucesso na execução
 }
