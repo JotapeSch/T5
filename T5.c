@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> // Adicionado para isalpha, toupper, tolower
+#include <ctype.h> 
 
 #define MAX_TEXTO 10000
 #define MAX_LINHA_compr 80
@@ -11,13 +11,13 @@
 int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidade_linhas);
 void lerPalavraBusca(char palavra[100]);
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas);
+void BuscarPalavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas);
 void limparEspacosExtras(char *texto);
 void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas);
 void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
-void CapitalizarPalavras(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
+void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
@@ -29,9 +29,9 @@ void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr 
 
 // objetivo: Divide o texto em linhas com no máximo 80 caracteres, preservando palavras
 // parametros: ponteiro para quantidade de linhas, texto original, matriz de linhas para armazenar o texto formatado
-// retorno: nenhum
+// retorno: quantidade de linhas
 int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
-    // Implementação pendente - JOTA
+    // Implementação - JOTA
     int quantidade_linhas = 0;
     int inicio = 0, fim = inicio + MAX_LINHA_compr;
     int tamanho_texto = strlen(text);
@@ -84,7 +84,7 @@ int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
 // parametros: quantidade de linhas, matriz de linhas contendo o texto formatado
 // retorno: nenhum
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidade_linhas) {
-    // Implementação pendente - JOTA
+    // Implementação - JOTA
     for (int i = 0; i < quantidade_linhas; i++) {
         printf("%s\n", linhas[i]);
     }
@@ -94,6 +94,7 @@ void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidad
 // parametros: variavel palavra
 // retorno: 1 - valido, 0 - invalido
 int verificarPalavraValida(char palavra_pra_encontrar[100]) {
+    //Jota
     int tamanho_pala = strlen(palavra_pra_encontrar);
     if (tamanho_pala == 0) {
         printf("Erro: Digite uma palavra valida (não pode estar vazia)!\n");
@@ -113,6 +114,7 @@ int verificarPalavraValida(char palavra_pra_encontrar[100]) {
 // parametros: uma variavel palavra
 // retorno: nenhum
 void lerPalavraBusca(char palavra[100]) {
+    //Jota
     int valido = 0;
     do {
         printf("Digite a palavra para buscar: ");
@@ -126,7 +128,7 @@ void lerPalavraBusca(char palavra[100]) {
 // objetivo: Procura uma palavra específica no texto e mostra suas ocorrências
 // parametros: matriz de linhas contendo o texto, quantidade de linhas do texto
 // retorno: nenhum
-void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas) {
+void BuscarPalavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas) {
     // Implementação pendente - JOTA
     char palavra_pra_encontrar[100];
     int encontrou = 0, j = 0;
@@ -169,6 +171,7 @@ void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[2
 // parametros: apenas o texto ja ou nao modificado
 // retorno: nenhum
 void limparEspacosExtras(char *texto) {
+    //Jota
     char resultado[MAX_TEXTO];
     int j = 0;
     int i = 0;
@@ -198,9 +201,6 @@ void limparEspacosExtras(char *texto) {
         }
     }
 
-    // Trata o caso de um espaço final (se o texto terminou com um espaço, 
-    // a última coisa que foi escrita em 'resultado' pode ter sido um espaço).
-    // O loop acima já deve evitar isso, mas esta é a garantia final:
     if (j > 0 && resultado[j-1] == ' ') {
         j--;
     }
@@ -274,34 +274,62 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
 // retorno: nenhum
 void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
     char antiga[100], nova[100];
-    char resultado[MAX_TEXTO];
+    int valido;
 
-    printf("informe a palavra a ser substituida: ");
-    scanf("%99s", antiga);
+    do {
+        printf("Digite a palavra a ser substituida: ");
+        fgets(antiga, sizeof(antiga), stdin);
+        antiga[strcspn(antiga, "\n")] = 0;
+        valido = verificarPalavraValida(antiga);
+    } while (!valido);
 
-    printf("Digite a nova palavra: ");
-    scanf("%99s", nova);
+    do {
+        printf("Digite a nova palavra: ");        
+        fgets(nova, sizeof(nova), stdin);
+        nova[strcspn(nova, "\n")] = 0;
+        valido = verificarPalavraValida(nova);
+    } while (!valido);
 
-    resultado[0] = '\0'; // inicia string sem nada
-    char *posicao, *inicio;
-    inicio = text;
+    int tamanho_antiga = strlen(antiga);
+    char resultado[MAX_TEXTO] = "";
+    char *inicio = text;
+    char *posicao;
+    int mudado = 0;
 
     while ((posicao = strstr(inicio, antiga)) != NULL) {
-        // copia parte antes da palavra encontrada
-        strncat(resultado, inicio, posicao - inicio);
+        int antes_ok = (posicao == text || !isalpha((unsigned char)*(posicao - 1))); 
+        int depois_ok = (!isalpha((unsigned char)*(posicao + tamanho_antiga)) || *(posicao + tamanho_antiga) == '\0');
 
-        // adiciona nova palavra
-        strcat(resultado, nova);
-
-        inicio = posicao + strlen(antiga);
+        if (antes_ok && depois_ok) {
+            // Copia parte anterior
+            strncat(resultado, inicio, posicao - inicio);
+            // Adiciona nova palavra
+            strcat(resultado, nova);
+            // Avança
+            inicio = posicao + tamanho_antiga;
+            mudado = 1;
+        } else {
+            // Não é palavra completa, copia até a posição atual + 1
+            strncat(resultado, inicio, (posicao - inicio) + 1);
+            inicio = posicao + 1;
+        }
     }
 
-    strcat(resultado, inicio); // copia o resto do texto
-    strcpy(text, resultado); // cola de volta para o texto original
-    limparEspacosExtras(text); // Limpa espaços extras antes de formatar
-    *quantidade_linhas = formatarTexto(text, linhas);
-    ImprimirFormatado(linhas, *quantidade_linhas); // Imprime o texto formatado
+    // Copia o restante
+    strcat(resultado, inicio);
+    
+    if (mudado) {
+        strcpy(text, resultado);
+        limparEspacosExtras(text);
+        *quantidade_linhas = formatarTexto(text, linhas);
+        printf("----------------------------------\n");
+        ImprimirFormatado(linhas, *quantidade_linhas);
+        printf("----------------------------------\n");
+    } else {
+        printf("Nenhuma ocorrencia substituida.\n");
+    }
 }
+
 
 // objetivo: Converte todo o texto para letras maiúsculas
 // parametros: texto que será convertido para caixa alta
@@ -332,27 +360,44 @@ void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *q
 // objetivo: Capitaliza a primeira letra de cada frase no texto
 // parametros: texto que terá as primeiras letras das frases capitalizadas
 // retorno: nenhum
-void CapitalizarPalavras(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
-    limparEspacosExtras(text); // Limpa espaços extras antes
-    int inicioFrase = 1; // para identificar inicio de frase
-    for (int i = 0; text[i] != '\0'; i++) {
-        text[i] = tolower((unsigned char) text[i]);
+void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+    limparEspacosExtras(text);
+    
+    int capitalizarProxima = 1;
+    int tamanho = strlen(text);
+    
+    // Converte tudo para minúsculas primeiro
+    for (int i = 0; i < tamanho; i++) {
+        text[i] = tolower((unsigned char)text[i]);
     }
-
-    for(int i = 0; text[i] != '\0'; i++){
-        if (inicioFrase && isalpha((unsigned char)text[i])) {
+    
+    // Capitaliza primeira letra de cada frase
+    for (int i = 0; i < tamanho; i++) {
+        if (capitalizarProxima && isalpha((unsigned char)text[i])) {
             text[i] = toupper((unsigned char)text[i]);
-            inicioFrase = 0; // ja esta maiuscula a primeira frase
-        } else if (!isalpha((unsigned char)text[i])) { 
-            inicioFrase = 1;
-        } else if (!isspace((unsigned char)text[i])) {
-            inicioFrase = 0;
+            capitalizarProxima = 0;
+        }
+        
+        // Verifica fim de frase
+        if (text[i] == '.' || text[i] == '!' || text[i] == '?') {
+            int j = i + 1;
+            while (j < tamanho && isspace((unsigned char)text[j])) {
+                j++;
+            }
+            if (j < tamanho && isalpha((unsigned char)text[j])) {
+                capitalizarProxima = 1;
+            }
         }
     }
+    
+    // Garante primeira letra maiúscula
+    if (tamanho > 0 && isalpha((unsigned char)text[0])) {
+        text[0] = toupper((unsigned char)text[0]);
+    }
+    
     *quantidade_linhas = formatarTexto(text, linhas);
     printf("=========================================\n");
-
-    printf("Texto convertido para (Primeira Letra Maiuscula de Cada Palavra)!\n");
+    printf("Texto com primeira letra de cada frase maiuscula!\n");
 }
 
 // objetivo: Alinha todo o texto à esquerda (padrão)
@@ -555,6 +600,7 @@ void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
 // parametros: texto original ou ja alterado, linhas da matriz, quantidade de linhas
 // retorno: nenhum
 void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int quantidade_linhas) {
+    //Jota
     text[0] = '\0';
     for (int i = 0; i < quantidade_linhas; i++) {
         strcat(text, linhas[i]);
@@ -569,6 +615,7 @@ void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr 
 // parametros: texto original, matriz de linhas formatadas, ponteiro para quantidade de linhas
 // retorno: nenhum
 void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+    //Jota
     int opcao;
     int linha_cont[200];
     do {
@@ -605,7 +652,7 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
 
         case 2:
             // objetivo: Busca palavra no texto formatado
-            BuscarPlavra(linhas, linha_cont, quantidade_linhas);
+            BuscarPalavra(linhas, linha_cont, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
@@ -636,7 +683,7 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
 
         case 7:
             // objetivo: Capitaliza frases e reformata texto
-            CapitalizarPalavras(texto, linhas, quantidade_linhas);
+            CapitalizarPrimLetraFrase(texto, linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
         
