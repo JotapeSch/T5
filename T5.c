@@ -10,19 +10,23 @@
 //------------- CHAMANDO FUNCOES ------------- 
 int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidade_linhas);
+void lerPalavraBusca(char palavra[100]);
 void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas);
+void limparEspacosExtras(char *texto);
 void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas);
 void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
-void PrimLetraMaiuFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
+void CapitalizarPalavras(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
 void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
 void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
+void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int quantidade_linhas);
 
 
 //------------- IMPLEMENTACOES  -------------
+
 // objetivo: Divide o texto em linhas com no máximo 80 caracteres, preservando palavras
 // parametros: ponteiro para quantidade de linhas, texto original, matriz de linhas para armazenar o texto formatado
 // retorno: nenhum
@@ -86,6 +90,9 @@ void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidad
     }
 }
 
+// objetivo: verificar se palavra existe no texto
+// parametros: variavel palavra
+// retorno: 1 - valido, 0 - invalido
 int verificarPalavraValida(char palavra_pra_encontrar[100]) {
     int tamanho_pala = strlen(palavra_pra_encontrar);
     if (tamanho_pala == 0) {
@@ -102,6 +109,9 @@ int verificarPalavraValida(char palavra_pra_encontrar[100]) {
     return 1; // valida
 }
 
+// objetivo: Ler uma palavra (padronizar e tals)
+// parametros: uma variavel palavra
+// retorno: nenhum
 void lerPalavraBusca(char palavra[100]) {
     int valido = 0;
     do {
@@ -155,6 +165,9 @@ void BuscarPlavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[2
     }
 }
 
+// objetivo: Limpar espacos extras que podem sobrar do formatar
+// parametros: apenas o texto ja ou nao modificado
+// retorno: nenhum
 void limparEspacosExtras(char *texto) {
     char resultado[MAX_TEXTO];
     int j = 0;
@@ -248,7 +261,6 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
         printf("Nenhuma ocorrencia substituida.\n");
     } else {
         limparEspacosExtras(text);
-        printf("AOBA");
         *quantidade_linhas = formatarTexto(text, linhas);
         printf("----------------------------------\n");
         ImprimirFormatado(linhas, *quantidade_linhas);
@@ -300,7 +312,8 @@ void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *qu
         text[i] = toupper((unsigned char)text[i]); // funcao para converter maiuscula
     }
     *quantidade_linhas = formatarTexto(text, linhas);
-    ImprimirFormatado(linhas, *quantidade_linhas);
+    printf("=========================================\n");
+    printf("O texto foi alterado para caixa alta!\n");
 }
 
 // objetivo: Converte todo o texto para letras minúsculas
@@ -312,40 +325,42 @@ void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *q
         text[i] = tolower((unsigned char)text[i]); // funcao que transforma tudo em minuscula
     }
     *quantidade_linhas = formatarTexto(text, linhas);
-    ImprimirFormatado(linhas, *quantidade_linhas);
+    printf("=========================================\n");
     printf("Texto convertido pra caixa baixa!\n");
 }
 
 // objetivo: Capitaliza a primeira letra de cada frase no texto
 // parametros: texto que terá as primeiras letras das frases capitalizadas
 // retorno: nenhum
-void PrimLetraMaiuFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+void CapitalizarPalavras(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
     limparEspacosExtras(text); // Limpa espaços extras antes
     int inicioFrase = 1; // para identificar inicio de frase
     for (int i = 0; text[i] != '\0'; i++) {
+        text[i] = tolower((unsigned char) text[i]);
+    }
+
+    for(int i = 0; text[i] != '\0'; i++){
         if (inicioFrase && isalpha((unsigned char)text[i])) {
             text[i] = toupper((unsigned char)text[i]);
             inicioFrase = 0; // ja esta maiuscula a primeira frase
-        } else if (text[i] == '.' || text[i] == '!' || text[i] == '?') { // se encontrou o fim da frase, repete o processo de conversao 
+        } else if (!isalpha((unsigned char)text[i])) { 
             inicioFrase = 1;
-            // Pula espaços após o ponto
-            while (text[i + 1] == ' ') {
-                i++;
-            }
         } else if (!isspace((unsigned char)text[i])) {
             inicioFrase = 0;
         }
     }
     *quantidade_linhas = formatarTexto(text, linhas);
-    ImprimirFormatado(linhas, *quantidade_linhas);
+    printf("=========================================\n");
+
+    printf("Texto convertido para (Primeira Letra Maiuscula de Cada Palavra)!\n");
 }
 
 // objetivo: Alinha todo o texto à esquerda (padrão)
 // parametros: quantidade de linhas, matriz de linhas contendo o texto
 // retorno: nenhum
 void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
-    // Implementação pendente - VINI
     for (int i = 0; i < MAX_LINHAS; i++) {
+        limparEspacosExtras(linhas[i]);
         if (linhas[i][0] == '\0') break;
 
         // Remove espaços no final
@@ -379,12 +394,13 @@ void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
     }
 }
 
+
 // objetivo: Alinha todo o texto à direita
 // parametros: quantidade de linhas, matriz de linhas contendo o texto
 // retorno: nenhum
 void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
-    // Implementação pendente - VINI
     for (int i = 0; i < MAX_LINHAS; i++) {
+        limparEspacosExtras(linhas[i]);
         if (linhas[i][0] == '\0') break;
 
         // Remove espaços no início e no final
@@ -432,59 +448,56 @@ void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
 // parametros: matriz de linhas contendo o texto, quantidade de linhas
 // retorno: nenhum
 void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
-    // Implementação pendente - VINI
     for (int i = 0; i < MAX_LINHAS; i++) {
         if (linhas[i][0] == '\0') break;
 
-        // Copia a linha para um buffer temporário
         char temp[MAX_LINHA_compr + 1];
         strcpy(temp, linhas[i]);
-        limparEspacosExtras(temp); // Remove espaços extras antes de justificar
+        limparEspacosExtras(temp);
 
-        // Conta palavras
-        char *palavras[MAX_LINHA_compr];
-        int palavra_contada = 0;
-        char *token = strtok(temp, " ");
-        while (token != NULL && palavra_contada < MAX_LINHA_compr) {
-            palavras[palavra_contada++] = token;
-            token = strtok(NULL, " ");
-        }
-
-        // Verifica se a linha tem apenas espaços ou é vazia
-        if (palavra_contada == 0) {
-            linhas[i][0] = '\0';
+        // Não justificar a última linha
+        if (linhas[i+1][0] == '\0') {
+            strcpy(linhas[i], temp);
             continue;
         }
 
-        // Calcula comprimento total das palavras
-        int tam_total = 0;
-        for (int j = 0; j < palavra_contada; j++) {
-            tam_total += strlen(palavras[j]);
+        // Tokenizar palavras
+        char *palavras[100];
+        int cont = 0;
+        char *tok = strtok(temp, " ");
+        int total_chars = 0;
+        while (tok != NULL) {
+            palavras[cont++] = tok;
+            total_chars += strlen(tok);
+            tok = strtok(NULL, " ");
         }
 
-        // Se for uma palavra ou a última linha, alinha à esquerda
-        if (palavra_contada <= 1 || (i == MAX_LINHAS - 1 || linhas[i + 1][0] == '\0')) {
-            strcpy(linhas[i], palavras[0] ? palavras[0] : "");
+        if (cont <= 1) {
+            // nada a justificar
+            strcpy(linhas[i], palavras[0]);
             continue;
         }
 
-        // Calcula espaços necessários
-        int espacos_necessario = MAX_LINHA_compr - tam_total;
-        int gaps = palavra_contada - 1;
-        int espacos_por_gaps = gaps > 0 ? espacos_necessario / gaps : 0;
-        int espacos_extras = gaps > 0 ? espacos_necessario % gaps : 0;
+        int total_esp = MAX_LINHA_compr - total_chars;
+        int gaps = cont - 1;
+        int esp_base = total_esp / gaps;
+        int extra = total_esp % gaps;
 
-        // Constrói linha justificada
-        char result[MAX_LINHA_compr + 1] = {0};
-        for (int j = 0; j < palavra_contada; j++) {
-            strcat(result, palavras[j]);
-            if (j < palavra_contada - 1) {
-                for (int k = 0; k < espacos_por_gaps + (j < espacos_extras ? 1 : 0); k++) {
-                    strcat(result, " ");
+        char resultado[MAX_LINHA_compr + 1] = "";
+        int pos = 0;
+        for (int j = 0; j < cont; j++) {
+            int len = strlen(palavras[j]);
+            strncpy(&resultado[pos], palavras[j], len);
+            pos += len;
+            if (j < cont - 1) {
+                int num = esp_base + (j < extra ? 1 : 0);
+                for (int k = 0; k < num; k++) {
+                    resultado[pos++] = ' ';
                 }
             }
         }
-        strcpy(linhas[i], result);
+        resultado[pos] = '\0';
+        strcpy(linhas[i], resultado);
     }
 }
 
@@ -494,6 +507,7 @@ void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
 void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
     // Implementação pendente - VINI
     for (int i = 0; i < MAX_LINHAS; i++) {
+        limparEspacosExtras(linhas[i]);
         if (linhas[i][0] == '\0') break;
 
         // Remove espaços no início e no final
@@ -536,6 +550,19 @@ void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
         }
     }
 }
+
+// objetivo: Atualizar o texto apos alguma alteracao
+// parametros: texto original ou ja alterado, linhas da matriz, quantidade de linhas
+// retorno: nenhum
+void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int quantidade_linhas) {
+    text[0] = '\0';
+    for (int i = 0; i < quantidade_linhas; i++) {
+        strcat(text, linhas[i]);
+        if (i < quantidade_linhas - 1) {
+            strcat(text, "\n");
+        }
+    }
+}
 //-----------------------------------------------------
 
 // objetivo: Exibe menu interativo e chama funções de formatação de texto conforme escolha do usuário
@@ -552,7 +579,7 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         printf("4 - Substituir todas as ocorrencias\n");
         printf("5 - Caixa alta\n");
         printf("6 - Caixa baixa\n");
-        printf("7 - Primeira letra maiuscula por frase\n");
+        printf("7 - Capitalizar as Palavras\n");
         printf("8 - Alinhar esquerda\n");
         printf("9 - Alinhar direita\n");
         printf("10 - Justificar\n");
@@ -579,55 +606,62 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         case 2:
             // objetivo: Busca palavra no texto formatado
             BuscarPlavra(linhas, linha_cont, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 3:
             // objetivo: Substitui primeira ocorrência e reformata texto
             SubPrimOcorrencia(linhas, texto, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
         
         case 4:
             // objetivo: Substitui todas ocorrências e reformata texto
             SubTodasOcorrencia(texto, linhas, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 5:
             // objetivo: Converte para maiúsculas e reformata texto
             CaixaAlta(texto, linhas, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
+
             break;
 
         case 6:
             // objetivo: Converte para minúsculas e reformata texto
             CaixaBaixa(texto, linhas, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 7:
             // objetivo: Capitaliza frases e reformata texto
-            PrimLetraMaiuFrase(texto, linhas, quantidade_linhas);
+            CapitalizarPalavras(texto, linhas, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
         
         case 8:
             // objetivo: Alinha texto à esquerda
             AlinharEsquerda(linhas);
-            ImprimirFormatado(linhas, *quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 9:
             // objetivo: Alinha texto à direita
-            AlinharDireita(linhas);
-            ImprimirFormatado(linhas, *quantidade_linhas);
+            AlinharDireita(linhas);            
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 10:
             // objetivo: Justifica o texto
             Justificar(linhas);
-            ImprimirFormatado(linhas, *quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 11:
             // objetivo: Centraliza o texto
             Centralizar(linhas);
-            ImprimirFormatado(linhas, *quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;   
             
         case 0:
