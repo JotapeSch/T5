@@ -231,6 +231,11 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
         valido = verificarPalavraValida(nova_palavra);
     } while (!valido);
 
+    if (strcmp(palavra_a_ser_substituida, nova_palavra) == 0) {
+        printf("A palavra antiga e a nova palavra sao iguais. Nenhuma substituicao realizada.\n");
+        return;
+    }
+
     int tamanho = strlen(palavra_a_ser_substituida);
     char *posicao_atual = strstr(text, palavra_a_ser_substituida);
     int mudado = 0;
@@ -242,13 +247,12 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
 
         if (antes_ok && depois_ok) {
             char resultado[MAX_TEXTO];
-            strncpy(resultado, text, posicao_atual - text);
-            resultado[posicao_atual - text] = '\0';
+            int tamanho_anterior = (int)(posicao_atual - text); 
+            // Construção da nova string: [Parte Antes] + [Nova Palavra] + [Parte Depois]
+            snprintf(resultado, sizeof(resultado), "%.*s%s%s",tamanho_anterior, text, nova_palavra, posicao_atual + tamanho); 
 
-            strcat(resultado, nova_palavra);
-            strcat(resultado, posicao_atual + tamanho);
-
-            strcpy(text, resultado);
+            strncpy(text, resultado, MAX_TEXTO - 1);
+            text[MAX_TEXTO - 1] = '\0';
             mudado = 1;
             break;
         
@@ -262,9 +266,8 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
     } else {
         limparEspacosExtras(text);
         *quantidade_linhas = formatarTexto(text, linhas);
-        printf("----------------------------------\n");
-        ImprimirFormatado(linhas, *quantidade_linhas);
-        printf("----------------------------------\n");
+        printf("=========================================\n");
+        printf("Foi Substituido a primeira ocorrencia da palavra '%s' pela '%s'!\n",palavra_a_ser_substituida, nova_palavra);
     
     }
 }
@@ -278,53 +281,99 @@ void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]
 
     do {
         printf("Digite a palavra a ser substituida: ");
+        // Usar fgets para entrada segura, mesmo que depois verifique apenas letras
         fgets(antiga, sizeof(antiga), stdin);
         antiga[strcspn(antiga, "\n")] = 0;
         valido = verificarPalavraValida(antiga);
     } while (!valido);
 
     do {
-        printf("Digite a nova palavra: ");        
+        printf("Digite a nova palavra: ");
         fgets(nova, sizeof(nova), stdin);
         nova[strcspn(nova, "\n")] = 0;
         valido = verificarPalavraValida(nova);
     } while (!valido);
 
+    if (strcmp(antiga, nova) == 0) {
+        printf("A palavra antiga e a nova palavra sao iguais. Nenhuma substituicao realizada.\n");
+        return;
+    }
+
     int tamanho_antiga = strlen(antiga);
-    char resultado[MAX_TEXTO] = "";
-    char *inicio = text;
+    int tamanho_nova = strlen(nova);
+    
+    // Usar um buffer de tamanho MAX_TEXTO + diferença máxima de tamanho, por segurança
+    char resultado[MAX_TEXTO * 2] = ""; 
+    
+    char *inicio_busca = text;
     char *posicao;
     int mudado = 0;
-
-    while ((posicao = strstr(inicio, antiga)) != NULL) {
+    size_t indice_resultado = 0;
+    
+    while ((posicao = strstr(inicio_busca, antiga)) != NULL) {
+        // Verifica se é uma palavra completa 
         int antes_ok = (posicao == text || !isalpha((unsigned char)*(posicao - 1))); 
         int depois_ok = (!isalpha((unsigned char)*(posicao + tamanho_antiga)) || *(posicao + tamanho_antiga) == '\0');
 
         if (antes_ok && depois_ok) {
-            // Copia parte anterior
-            strncat(resultado, inicio, posicao - inicio);
-            // Adiciona nova palavra
-            strcat(resultado, nova);
-            // Avança
-            inicio = posicao + tamanho_antiga;
+            // 1. Copia o trecho ANTERIOR à ocorrência para o resultado
+            size_t tamanho_anterior = posicao - inicio_busca;
+            // Se o trecho anterior couber no resultado
+            if (indice_resultado + tamanho_anterior < sizeof(resultado) - 1) {
+                strncpy(resultado + indice_resultado, inicio_busca, tamanho_anterior);
+                indice_resultado += tamanho_anterior;
+            } else {
+                // Buffer overflow: aborta a substituição
+                printf("Erro: Buffer de texto excedido durante a substituicao.\n");
+                return; 
+            }
+            
+            // 2. Adiciona a NOVA palavra
+            if (indice_resultado + tamanho_nova < sizeof(resultado) - 1) {
+                strcpy(resultado + indice_resultado, nova);
+                indice_resultado += tamanho_nova;
+            } else {
+                // aborta a substituição caso o buffer de excede
+                printf("Erro: Buffer de texto excedido durante a substituicao.\n");
+                return;
+            }
+
+            // 3. Avança o ponteiro de busca para DEPOIS da palavra antiga
+            inicio_busca = posicao + tamanho_antiga;
             mudado = 1;
         } else {
-            // Não é palavra completa, copia até a posição atual + 1
-            strncat(resultado, inicio, (posicao - inicio) + 1);
-            inicio = posicao + 1;
+            // Não é palavra completa, copia apenas o primeiro caractere e avança o ponteiro de busca em 1
+            if (indice_resultado < sizeof(resultado) - 1) {
+                resultado[indice_resultado++] = *inicio_busca;
+                resultado[indice_resultado] = '\0'; // Mantém o resultado como string válida
+                inicio_busca++;
+            } else {
+                printf("Erro: Buffer de texto excedido durante a substituicao.\n");
+                return; 
+            }
         }
     }
 
-    // Copia o restante
-    strcat(resultado, inicio);
+    // Copia o restante do texto (o que sobrou de 'inicio_busca' até o final)
+    if (indice_resultado + strlen(inicio_busca) < sizeof(resultado) - 1) {
+        strcpy(resultado + indice_resultado, inicio_busca);
+    } else {
+        printf("Erro: Buffer de texto excedido ao finalizar o texto.\n");
+        return;
+    }
     
+    // Finaliza o resultado com null
+    resultado[sizeof(resultado) - 1] = '\0';
+
     if (mudado) {
-        strcpy(text, resultado);
+        // Garante que o texto original não ultrapasse MAX_TEXTO
+        strncpy(text, resultado, MAX_TEXTO - 1);
+        text[MAX_TEXTO - 1] = '\0';
+
         limparEspacosExtras(text);
         *quantidade_linhas = formatarTexto(text, linhas);
-        printf("----------------------------------\n");
-        ImprimirFormatado(linhas, *quantidade_linhas);
-        printf("----------------------------------\n");
+        printf("=========================================\n");
+        printf("Foi Substituido todas as ocorrencias da palavra '%s' pela '%s'!\n", antiga, nova);
     } else {
         printf("Nenhuma ocorrencia substituida.\n");
     }
@@ -603,12 +652,55 @@ void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr 
     //Jota
     text[0] = '\0';
     for (int i = 0; i < quantidade_linhas; i++) {
-        strcat(text, linhas[i]);
-        if (i < quantidade_linhas - 1) {
-            strcat(text, "\n");
+        strncat(text, linhas[i], MAX_TEXTO - strlen(text) - 1);
+        strncat(text, "\n", MAX_TEXTO - strlen(text) - 1);
+    }
+}
+
+// objetivo: Garantir que nao tenha linhas excedendo ou ate problemas com buffer
+// parametros: matriz linhas, e a quantidade de linhas que o texto tem ate o momento
+// retorno: nenhum
+void ajustarLinhas(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int *quantidade_linhas) {
+    int i = 0;
+    while (i < *quantidade_linhas){
+        if(strlen(linhas[i]) > MAX_LINHA_compr){
+            if (*quantidade_linhas >= MAX_LINHAS){
+                printf("ERRO: limite maximo de linhas atingido! Parte do texto pode estar sendo afetado!\n");
+                linhas[i][MAX_LINHA_compr] = '\0';
+                i++;
+                continue;
+            }
+            int corte = MAX_LINHA_compr;
+            while(corte > 0 && linhas[i][corte] != ' '){
+                corte--;
+            }
+
+            if (corte == 0){
+                corte = MAX_LINHA_compr;
+            }
+
+            size_t inicio_proxima = corte;
+            while (inicio_proxima < strlen(linhas[i]) && linhas[i][inicio_proxima] == ' '){
+                inicio_proxima++;
+            }
+
+            //Abre espaço na matriz, basicamente to movendo todas as linhas de baixo para baixo
+            for(int j = *quantidade_linhas; j > i + 1; j--) {
+                strcpy(linhas[j], linhas[j-1]);
+            }
+            (*quantidade_linhas)++;
+
+            strncpy(linhas[i+1], linhas[i] + inicio_proxima, MAX_LINHA_compr);
+            linhas[i+1][MAX_LINHA_compr] = '\0';
+
+            linhas[i][corte] = '\0'; //garanto que finalizei no corte
+        } else {
+            i++;
         }
     }
 }
+
+
 //-----------------------------------------------------
 
 // objetivo: Exibe menu interativo e chama funções de formatação de texto conforme escolha do usuário
@@ -653,24 +745,28 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         case 2:
             // objetivo: Busca palavra no texto formatado
             BuscarPalavra(linhas, linha_cont, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 3:
             // objetivo: Substitui primeira ocorrência e reformata texto
             SubPrimOcorrencia(linhas, texto, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
         
         case 4:
             // objetivo: Substitui todas ocorrências e reformata texto
             SubTodasOcorrencia(texto, linhas, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 5:
             // objetivo: Converte para maiúsculas e reformata texto
             CaixaAlta(texto, linhas, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
 
             break;
@@ -678,36 +774,42 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         case 6:
             // objetivo: Converte para minúsculas e reformata texto
             CaixaBaixa(texto, linhas, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 7:
             // objetivo: Capitaliza frases e reformata texto
             CapitalizarPrimLetraFrase(texto, linhas, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
         
         case 8:
             // objetivo: Alinha texto à esquerda
             AlinharEsquerda(linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 9:
             // objetivo: Alinha texto à direita
-            AlinharDireita(linhas);            
+            AlinharDireita(linhas);        
+            ajustarLinhas(linhas, quantidade_linhas);   
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 10:
             // objetivo: Justifica o texto
             Justificar(linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 11:
             // objetivo: Centraliza o texto
             Centralizar(linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;   
             
