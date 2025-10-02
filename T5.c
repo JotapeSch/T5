@@ -6,18 +6,19 @@
 #define MAX_TEXTO 10000
 #define MAX_LINHA_compr 80
 #define MAX_LINHAS 500
+enum Alinhamento { ESQUERDA, DIREITA, JUSTIFICADO, CENTRALIZADO };
 
 //------------- CHAMANDO FUNCOES ------------- 
-int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]); 
+int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1], enum Alinhamento alinhamento); 
 void ImprimirFormatado(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int quantidade_linhas);
 void lerPalavraBusca(char palavra[100]);
 void BuscarPalavra(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int linha_cont[200], int *quantidade_linhas);
 void limparEspacosExtras(char *texto);
-void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas);
-void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
-void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
-void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
-void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas);
+void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas, enum Alinhamento alinhamento);
+void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento);
+void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento);
+void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento);
+void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento);
 void AlinharEsquerda(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void AlinharDireita(char linhas[MAX_LINHAS][MAX_LINHA_compr+1]);
 void Justificar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]);
@@ -30,7 +31,7 @@ void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr 
 // objetivo: Divide o texto em linhas com no máximo 80 caracteres, preservando palavras
 // parametros: ponteiro para quantidade de linhas, texto original, matriz de linhas para armazenar o texto formatado
 // retorno: quantidade de linhas
-int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
+int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1], enum Alinhamento alinhamento) {
     // Implementação - JOTA
     int quantidade_linhas = 0;
     int inicio = 0, fim = inicio + MAX_LINHA_compr;
@@ -63,6 +64,12 @@ int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
                 fim = tamanho_texto;
         }
 
+        int comprimento = fim - inicio;
+        if (comprimento > MAX_LINHA_compr) {
+            comprimento = MAX_LINHA_compr;
+            fim = inicio + comprimento;
+        }
+
         strncpy(linhas[quantidade_linhas], &text[inicio], fim - inicio);
         linhas[quantidade_linhas][fim - inicio] = '\0';
         quantidade_linhas++;
@@ -74,7 +81,24 @@ int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1]) {
         fim = inicio + MAX_LINHA_compr;
 
         // verifico se o quantidade de linhas eh maior que o maximo permitido
-        if (quantidade_linhas >= MAX_LINHAS) 
+        if (quantidade_linhas >= MAX_LINHAS) {
+            printf("Aviso: Limite de linhas (%d) atingido. Parte do texto pode ser truncada.\n", MAX_LINHAS);
+            break;
+        }
+    }
+
+    switch (alinhamento) {
+        case ESQUERDA:
+            AlinharEsquerda(linhas);
+            break;
+        case DIREITA:
+            AlinharDireita(linhas);
+            break;
+        case JUSTIFICADO:
+            Justificar(linhas);
+            break;
+        case CENTRALIZADO:
+            Centralizar(linhas);
             break;
     }
     return quantidade_linhas;
@@ -212,7 +236,7 @@ void limparEspacosExtras(char *texto) {
 // objetivo: Substitui apenas a primeira ocorrência de uma palavra no texto
 // parametros: texto original onde será feita a substituição
 // retorno: nenhum
-void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas) {
+void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text, int *quantidade_linhas, enum Alinhamento alinhamento) {
     // Implementação pendente - JOTA 
     char palavra_a_ser_substituida[100], nova_palavra[100];
     int valido;
@@ -247,9 +271,17 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
 
         if (antes_ok && depois_ok) {
             char resultado[MAX_TEXTO];
-            int tamanho_anterior = (int)(posicao_atual - text); 
-            // Construção da nova string: [Parte Antes] + [Nova Palavra] + [Parte Depois]
-            snprintf(resultado, sizeof(resultado), "%.*s%s%s",tamanho_anterior, text, nova_palavra, posicao_atual + tamanho); 
+            int tamanho_anterior = (int)(posicao_atual - text);
+            int tamanho_nova = strlen(nova_palavra);
+            int tamanho_restante = strlen(posicao_atual + tamanho);
+
+            // Verifica se o tamanho total do novo texto excede MAX_TEXTO
+            if (tamanho_anterior + tamanho_nova + tamanho_restante >= MAX_TEXTO) {
+                printf("Erro: Substituição resultaria em texto maior que o limite permitido.\n");
+                return;
+            }
+
+            snprintf(resultado, sizeof(resultado), "%.*s%s%s", tamanho_anterior, text, nova_palavra, posicao_atual + tamanho); 
 
             strncpy(text, resultado, MAX_TEXTO - 1);
             text[MAX_TEXTO - 1] = '\0';
@@ -265,7 +297,7 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
         printf("Nenhuma ocorrencia substituida.\n");
     } else {
         limparEspacosExtras(text);
-        *quantidade_linhas = formatarTexto(text, linhas);
+        *quantidade_linhas = formatarTexto(text, linhas, alinhamento);
         printf("=========================================\n");
         printf("Foi Substituido a primeira ocorrencia da palavra '%s' pela '%s'!\n",palavra_a_ser_substituida, nova_palavra);
     
@@ -275,7 +307,7 @@ void SubPrimOcorrencia(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], char *text,
 // objetivo: Substitui todas as ocorrências de uma palavra no texto
 // parametros: texto original onde serão feitas as substituições
 // retorno: nenhum
-void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento) {
     char antiga[100], nova[100];
     int valido;
 
@@ -367,11 +399,14 @@ void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]
 
     if (mudado) {
         // Garante que o texto original não ultrapasse MAX_TEXTO
+        if (strlen(resultado) >= MAX_TEXTO) {
+        printf("Aviso: Texto resultante foi truncado para caber no limite de %d caracteres.\n", MAX_TEXTO - 1);
+        }
         strncpy(text, resultado, MAX_TEXTO - 1);
         text[MAX_TEXTO - 1] = '\0';
 
         limparEspacosExtras(text);
-        *quantidade_linhas = formatarTexto(text, linhas);
+        *quantidade_linhas = formatarTexto(text, linhas, alinhamento);
         printf("=========================================\n");
         printf("Foi Substituido todas as ocorrencias da palavra '%s' pela '%s'!\n", antiga, nova);
     } else {
@@ -383,12 +418,12 @@ void SubTodasOcorrencia(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]
 // objetivo: Converte todo o texto para letras maiúsculas
 // parametros: texto que será convertido para caixa alta
 // retorno: nenhum
-void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento) {
     limparEspacosExtras(text); // Limpa espaços extras antes
     for (int i = 0; text[i] != '\0'; i++) {
         text[i] = toupper((unsigned char)text[i]); // funcao para converter maiuscula
     }
-    *quantidade_linhas = formatarTexto(text, linhas);
+    *quantidade_linhas = formatarTexto(text, linhas, alinhamento);
     printf("=========================================\n");
     printf("O texto foi alterado para caixa alta!\n");
 }
@@ -396,12 +431,12 @@ void CaixaAlta(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *qu
 // objetivo: Converte todo o texto para letras minúsculas
 // parametros: texto que será convertido para caixa baixa
 // retorno: nenhum
-void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento) {
     limparEspacosExtras(text); // Limpa espaços extras antes
     for (int i = 0; text[i] != '\0'; i++) {
         text[i] = tolower((unsigned char)text[i]); // funcao que transforma tudo em minuscula
     }
-    *quantidade_linhas = formatarTexto(text, linhas);
+    *quantidade_linhas = formatarTexto(text, linhas, alinhamento);
     printf("=========================================\n");
     printf("Texto convertido pra caixa baixa!\n");
 }
@@ -409,7 +444,7 @@ void CaixaBaixa(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *q
 // objetivo: Capitaliza a primeira letra de cada frase no texto
 // parametros: texto que terá as primeiras letras das frases capitalizadas
 // retorno: nenhum
-void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
+void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas, enum Alinhamento alinhamento) {
     limparEspacosExtras(text);
     
     int capitalizarProxima = 1;
@@ -444,7 +479,7 @@ void CapitalizarPrimLetraFrase(char *text, char linhas[MAX_LINHAS][MAX_LINHA_com
         text[0] = toupper((unsigned char)text[0]);
     }
     
-    *quantidade_linhas = formatarTexto(text, linhas);
+    *quantidade_linhas = formatarTexto(text, linhas, alinhamento);
     printf("=========================================\n");
     printf("Texto com primeira letra de cada frase maiuscula!\n");
 }
@@ -651,10 +686,27 @@ void Centralizar(char linhas[MAX_LINHAS][MAX_LINHA_compr + 1]) {
 void AtualizarTextoOriginal(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int quantidade_linhas) {
     //Jota
     text[0] = '\0';
+    size_t tamanho_atual = 0;
+
     for (int i = 0; i < quantidade_linhas; i++) {
-        strncat(text, linhas[i], MAX_TEXTO - strlen(text) - 1);
-        strncat(text, "\n", MAX_TEXTO - strlen(text) - 1);
+        char temp[MAX_LINHA_compr + 1];
+        strcpy(temp, linhas[i]);
+        limparEspacosExtras(temp); // Remove espaços de alinhamento
+
+        size_t tamanho_linha = strlen(temp);
+        if (tamanho_atual + tamanho_linha + 1 >= MAX_TEXTO) {
+            printf("Aviso: Texto original truncado para caber no limite de %d caracteres.\n", MAX_TEXTO - 1);
+            break;
+        }
+
+        strncat(text, temp, MAX_TEXTO - tamanho_atual - 1);
+        tamanho_atual += tamanho_linha;
+        if (i < quantidade_linhas - 1) {
+            strncat(text, " ", MAX_TEXTO - tamanho_atual - 1);
+            tamanho_atual++;
+        }
     }
+    text[MAX_TEXTO - 1] = '\0';
 }
 
 // objetivo: Garantir que nao tenha linhas excedendo ou ate problemas com buffer
@@ -707,9 +759,9 @@ void ajustarLinhas(char linhas[MAX_LINHAS][MAX_LINHA_compr+1], int *quantidade_l
 // parametros: texto original, matriz de linhas formatadas, ponteiro para quantidade de linhas
 // retorno: nenhum
 void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quantidade_linhas) {
-    //Jota
     int opcao;
     int linha_cont[200];
+    enum Alinhamento alinhamento_atual = ESQUERDA;
     do {
         printf("\n===== MENU =====\n");
         printf("1 - Imprimir texto formatado\n");
@@ -726,100 +778,85 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         printf("0 - Sair\n");
         printf("Escolha: ");
         
-        // Validação de entrada
         if (scanf("%d", &opcao) != 1) {
             printf("Entrada invalida. Tente novamente.\n");
-            while (getchar() != '\n'); // Limpa o buffer
+            while (getchar() != '\n');
             continue;
         }
         
-        // Limpar buffer após scanf
         while (getchar() != '\n');
         
         switch (opcao) {
         case 1:
-            // objetivo: Imprime o texto formatado
             ImprimirFormatado(linhas, *quantidade_linhas);
             break;
 
         case 2:
-            // objetivo: Busca palavra no texto formatado
             BuscarPalavra(linhas, linha_cont, quantidade_linhas);
+            ajustarLinhas(linhas, quantidade_linhas);
+            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
+            *quantidade_linhas = formatarTexto(texto, linhas, alinhamento_atual);
+            break;
+
+        case 3:
+            SubPrimOcorrencia(linhas, texto, quantidade_linhas, alinhamento_atual);
             ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
-        case 3:
-            // objetivo: Substitui primeira ocorrência e reformata texto
-            SubPrimOcorrencia(linhas, texto, quantidade_linhas);
-            ajustarLinhas(linhas, quantidade_linhas);
-            AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
-            break;
-        
         case 4:
-            // objetivo: Substitui todas ocorrências e reformata texto
-            SubTodasOcorrencia(texto, linhas, quantidade_linhas);
+            SubTodasOcorrencia(texto, linhas, quantidade_linhas, alinhamento_atual);
             ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 5:
-            // objetivo: Converte para maiúsculas e reformata texto
-            CaixaAlta(texto, linhas, quantidade_linhas);
+            CaixaAlta(texto, linhas, quantidade_linhas, alinhamento_atual);
             ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
-
             break;
 
         case 6:
-            // objetivo: Converte para minúsculas e reformata texto
-            CaixaBaixa(texto, linhas, quantidade_linhas);
+            CaixaBaixa(texto, linhas, quantidade_linhas, alinhamento_atual);
             ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 7:
-            // objetivo: Capitaliza frases e reformata texto
-            CapitalizarPrimLetraFrase(texto, linhas, quantidade_linhas);
+            CapitalizarPrimLetraFrase(texto, linhas, quantidade_linhas, alinhamento_atual);
             ajustarLinhas(linhas, quantidade_linhas);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
-        
+
         case 8:
-            // objetivo: Alinha texto à esquerda
-            AlinharEsquerda(linhas);
-            ajustarLinhas(linhas, quantidade_linhas);
+            alinhamento_atual = ESQUERDA;
+            *quantidade_linhas = formatarTexto(texto, linhas, alinhamento_atual);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 9:
-            // objetivo: Alinha texto à direita
-            AlinharDireita(linhas);        
-            ajustarLinhas(linhas, quantidade_linhas);   
+            alinhamento_atual = DIREITA;
+            *quantidade_linhas = formatarTexto(texto, linhas, alinhamento_atual);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 10:
-            // objetivo: Justifica o texto
-            Justificar(linhas);
-            ajustarLinhas(linhas, quantidade_linhas);
+            alinhamento_atual = JUSTIFICADO;
+            *quantidade_linhas = formatarTexto(texto, linhas, alinhamento_atual);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
             break;
 
         case 11:
-            // objetivo: Centraliza o texto
-            Centralizar(linhas);
-            ajustarLinhas(linhas, quantidade_linhas);
+            alinhamento_atual = CENTRALIZADO;
+            *quantidade_linhas = formatarTexto(texto, linhas, alinhamento_atual);
             AtualizarTextoOriginal(texto, linhas, *quantidade_linhas);
-            break;   
-            
+            break;
+
         case 0:
-            // objetivo: Sai do programa
             printf("Saindo do programa...\n");
             break;
-            
+
         default:
-            // Trata opção inválida
             printf("Opção inválida! Tente novamente.\n");
             break;
         }
@@ -864,7 +901,7 @@ int main() {
     int quantidade_linhas;
     
     // FORMATAR PELA PRIMEIRA VEZ
-    quantidade_linhas = formatarTexto(text, linhas);
+    quantidade_linhas = formatarTexto(text, linhas, ESQUERDA);
     
     // CHAMA MENU
     Menu(text, linhas, &quantidade_linhas);
