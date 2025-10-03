@@ -7,6 +7,7 @@
 #define MAX_LINHA_compr 80
 #define MAX_LINHAS 500
 enum Alinhamento { ESQUERDA, DIREITA, JUSTIFICADO, CENTRALIZADO };
+//Joao Pedro Schons, Vinicius Martins, Ryan Campos
 
 //------------- CHAMANDO FUNCOES ------------- 
 int formatarTexto(char *text, char linhas[MAX_LINHAS][MAX_LINHA_compr+1], enum Alinhamento alinhamento); 
@@ -770,7 +771,7 @@ void Menu(char *texto, char linhas[MAX_LINHAS][MAX_LINHA_compr + 1], int *quanti
         printf("4 - Substituir todas as ocorrencias\n");
         printf("5 - Caixa alta\n");
         printf("6 - Caixa baixa\n");
-        printf("7 - Capitalizar as Palavras\n");
+        printf("7 - Capitalizar primeira letra c/ frase.\n");
         printf("8 - Alinhar esquerda\n");
         printf("9 - Alinhar direita\n");
         printf("10 - Justificar\n");
